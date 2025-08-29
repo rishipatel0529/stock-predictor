@@ -1,0 +1,29 @@
+# API keys
+.env
+.Renviron
+
+# R & mac cruft
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+.DS_Store
+
+# renv local libs
+renv/library/
+renv/staging/
+
+# data
+data_cache/
+outputs/
+logs/
+*.log
+*.png
+*.pdf
+*.rds
+
+# notebooks misc
+.ipynb_checkpoints/
+
+# R files
+scripts/stack_weights.R
