@@ -27,3 +27,7 @@ logs/
 
 # R files
 scripts/stack_weights.R
+
+# remove docs/ from gitignore
+!docs/
+!docs/*.png
