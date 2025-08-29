@@ -1,0 +1,58 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: macos-13
+    env:
+      WATCHLIST: AAPL,MSFT,NVDA,TSLA,SPY
+      NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+
+      - name: Install system deps
+        run: brew install libpng
+
+      # Use renv cache if renv.lock exists; otherwise fall back to your installers
+      - name: Restore renv cache (if present)
+        if: ${{ hashFiles('renv.lock') != '' }}
+        uses: r-lib/actions/setup-renv@v2
+        with:
+          cache-version: 2
+
+      - name: Fallback install (no renv.lock)
+        if: ${{ hashFiles('renv.lock') == '' }}
+        run: |
+          Rscript install_packages.R
+          Rscript -e 'if(!"textdata"%in%rownames(installed.packages())) install.packages("textdata", repos="https://cloud.r-project.org"); if(!"tidytext"%in%rownames(installed.packages())) install.packages("tidytext", repos="https://cloud.r-project.org"); suppressMessages({try(textdata::lexicon_bingliu(), silent=TRUE); try(textdata::lexicon_afinn(), silent=TRUE)})'
+          Rscript install_dl.R
+
+      - name: Prepare .env
+        run: |
+          cp .env.example .env || true
+          if [ -n "${NEWSAPI_KEY}" ]; then
+            echo "NEWSAPI_KEY=${NEWSAPI_KEY}" >> .env
+          fi
+
+      - name: Nightly predictions (watchlist)
+        run: Rscript scripts/run_watchlist.R --tickers "$WATCHLIST" --news_days 7
+
+      - name: Nightly benchmark
+        run: Rscript scripts/benchmark_watchlist.R --tickers "$WATCHLIST" --news_days 5 --seq_len 30 --epochs 20
+
+      - name: Upload outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-outputs
+          path: outputs/
+
+      - name: Auto-commit outputs (optional)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Nightly predictions & benchmark"
+          file_pattern: outputs/*

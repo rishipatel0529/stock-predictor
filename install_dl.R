@@ -1,0 +1,6 @@
+pkgs <- c("keras","tensorflow","reticulate","recipes")
+installed <- rownames(installed.packages())
+to_install <- setdiff(pkgs, installed)
+if(length(to_install)) install.packages(to_install, repos="https://cloud.r-project.org")
+suppressPackageStartupMessages(library(tensorflow))
+tryCatch(tensorflow::install_tensorflow(), error=function(e) message(e))

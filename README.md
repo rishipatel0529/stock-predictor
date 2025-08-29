@@ -190,18 +190,18 @@ make benchmark
 Direct Rscript
 ```bash
 # Ensemble compare (XGB + LSTM)
-Rscript scripts/compare_models.R --ticker AAPL --start 2015-01-01 --seq_len 30 --epochs 20
+Rscript scripts/compare_models.R --ticker AAPL --start 2015-01-01 --seq_len 180 --epochs 200
 
 # Directional backtest
 Rscript scripts/backtest_cls.R \
   --ticker AAPL --start 2018-01-01 --horizon 60 \
-  --news_days 7 --model both --seq_len 30 --epochs 15 \
+  --news_days 7 --model both --seq_len 120 --epochs 200 \
   --p_thresh 0.55 --r_thresh 0.003 --cost_bp 10 --allow_short FALSE
 
 # Replay a period (pred vs actual per day)
 Rscript scripts/replay_period.R \
   --ticker MSFT --from 2024-11-01 --to 2024-12-20 \
-  --model both --news_days 7 --seq_len 30 --epochs 20
+  --model both --news_days 7 --seq_len 180 --epochs 200
 ```
 
 ---

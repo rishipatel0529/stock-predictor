@@ -1,0 +1,6 @@
+lookback_years: 10
+news_days: 7
+model: xgboost
+train_min_rows: 400
+valid_last_days: 60
+rolling_window_train: 252

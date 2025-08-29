@@ -1,0 +1,69 @@
+# 1 XGBoost single forecast
+# scripts/predict.R           -> XGBoost model entrypoint (trees)
+# --ticker AAPL               -> which symbol to predict
+# --start 2015-01-01          -> earliest date to pull historical prices/news
+# --news_days 7               -> how many recent days of news to aggregate into sentiment features
+# --no_news TRUE              -> (optional) disable news features entirely; ignores --news_days
+# --plot_off TRUE             -> (optional) skip saving the PNG chart to outputs/
+Rscript scripts/predict.R --ticker AAPL --start 2015-01-01 --news_days 7 \
+  [--no_news TRUE] [--plot_off TRUE]
+
+# 2 LSTM (deep learning) single forecast
+# scripts/predict_dl.R        -> LSTM model entrypoint
+# --ticker AAPL               -> symbol
+# --start 2015-01-01          -> earliest data pulled
+# --news_days 7               -> news lookback window for sentiment features
+# --seq_len 30                -> LSTM lookback window (days per sequence)
+# --epochs 30                 -> training passes (with early stopping)
+# --plot_off TRUE             -> (optional) skip PNG output
+Rscript scripts/predict_dl.R --ticker AAPL --start 2015-01-01 --news_days 7 --seq_len 120 --epochs 200 \
+  [--plot_off TRUE]
+
+# 3 Compare models side-by-side (XGBoost vs LSTM)
+# scripts/compare_models.R    -> trains both models on same data window
+# --ticker AAPL               -> symbol
+# --start 2015-01-01          -> earliest data pulled
+# --news_days 7               -> news lookback
+# --seq_len 30                -> LSTM lookback
+# --epochs 20                 -> LSTM training passes
+Rscript scripts/compare_models.R --ticker AAPL --start 2015-01-01 --news_days 7 --seq_len 180 --epochs 200
+
+# 4 XGBoost walk-forward backtest
+# scripts/backtest.R          -> backtest with rolling training windows
+# --ticker AAPL               -> symbol
+# --start 2018-01-01          -> earliest data used
+# --horizon 180               -> number of consecutive test days to evaluate
+# --news_days 7               -> news lookback (if news enabled)
+# --no_news TRUE              -> (optional) backtest without news features
+Rscript scripts/backtest.R --ticker AAPL --start 2018-01-01 --horizon 180 \
+  [--news_days 7] [--no_news TRUE]
+
+# 5 LSTM walk-forward backtest
+# scripts/backtest_dl.R      -> LSTM backtest
+# --ticker AAPL              -> symbol
+# --start 2018-01-01         -> earliest data used
+# --horizon 60               -> number of test days
+# --seq_len 30               -> LSTM lookback
+# --epochs 15                -> LSTM training passes
+Rscript scripts/backtest_dl.R --ticker AAPL --start 2018-01-01 --horizon 60 --seq_len 120 --epochs 200
+
+# 6 Batch run multiple tickers
+# scripts/run_watchlist.R        -> runs predict (XGB) and predict_dl (LSTM) for each ticker
+# --tickers AAPL,MSFT,SPY        -> comma-separated list; if omitted, uses WATCHLIST from .env
+# --news_days 7                  -> news lookback for both models
+# (Tip: wrap the list in quotes if your shell expands commas weirdly)
+Rscript scripts/run_watchlist.R --tickers AAPL,MSFT,SPY --news_days 7
+
+# 7 Makefile shortcuts (same actions, shorter commands)
+# make install                 -> runs both install scripts (packages + DL deps)
+# make predict T=AAPL          -> XGBoost single forecast for ticker T
+# make predict-dl T=AAPL       -> LSTM single forecast for ticker T
+# make backtest T=AAPL         -> XGBoost backtest for ticker T (edit horizon inside or add flags directly)
+# make backtest-dl T=AAPL      -> LSTM backtest for ticker T
+# make run-watchlist LIST="AAPL,MSFT,SPY" -> batch run; LIST overrides .env WATCHLIST
+make install
+make predict T=AAPL
+make predict-dl T=AAPL
+make backtest T=AAPL
+make backtest-dl T=AAPL
+make run-watchlist LIST="AAPL,MSFT,SPY"
